@@ -18,8 +18,4 @@ This project deliberately avoids slow, high-level automation libraries (like `Py
 * **Hardware Optimized:** Hardcoded `max_num_hands=1` limits the inference payload, allowing the system to run seamlessly on CPU or entry-level GPUs (e.g., GTX 1650) at 30+ FPS.
 
 ## Installation & Setup
-
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/naved-me/hand-gesture.git](https://github.com/naved-me/hand-gesture.git)
-   cd hand-gesture
+**Clone the repository:**
