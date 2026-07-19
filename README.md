@@ -18,4 +18,4 @@ This project deliberately avoids slow, high-level automation libraries (like `Py
 * **Hardware Optimized:** Hardcoded `max_num_hands=1` limits the inference payload, allowing the system to run seamlessly on CPU or entry-level GPUs (e.g., GTX 1650) at 30+ FPS.
 
 ## Installation & Setup
-**Clone the repository:**
+**Clone the repository**
