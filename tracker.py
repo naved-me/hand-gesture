@@ -159,6 +159,7 @@ class HandTracker:
     def process_frame(
         self,
         frame_bgr,
+        results=None,
     ) -> Tuple[
         any,
         Optional[Tuple[float, float]],
@@ -172,10 +173,11 @@ class HandTracker:
         """
         frame_h, frame_w = frame_bgr.shape[:2]
 
-        frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
-        frame_rgb.flags.writeable = False
-        results = self.hands.process(frame_rgb)
-        frame_rgb.flags.writeable = True
+        if results is None:
+            frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
+            frame_rgb.flags.writeable = False
+            results = self.hands.process(frame_rgb)
+            frame_rgb.flags.writeable = True
 
         annotated = frame_bgr.copy()
         raw_xy: Optional[Tuple[float, float]] = None
@@ -222,8 +224,7 @@ class HandTracker:
 
             # Map smoothed move anchor (Landmark 5) within [frame_margin, frame_w-frame_margin]
             # to [0, screen_w] / [0, screen_h] with np.interp
-            # Horizontal flip so hand left moves cursor left (invert X only).
-            mapped_x = np.interp((frame_w - smoothed.x), [x0, x1], [0, self.screen_w])
+            mapped_x = np.interp(smoothed.x, [x0, x1], [0, self.screen_w])
             mapped_y = np.interp(smoothed.y, [y0, y1], [0, self.screen_h])
 
             screen_x, screen_y = int(round(mapped_x)), int(round(mapped_y))
