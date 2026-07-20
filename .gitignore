@@ -1,0 +1,17 @@
+Environments
+
+venv/
+env/
+.env
+
+Cache and compiled files
+
+pycache/
+*.pyc
+*.pyo
+*.pyd
+
+OS specific files
+
+.DS_Store
+Thumbs.db

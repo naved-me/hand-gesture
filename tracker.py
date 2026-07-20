@@ -48,7 +48,8 @@ class HandTracker:
         min_detection_confidence: float = 0.7,
         min_tracking_confidence: float = 0.7,
         alpha: float = 0.2,
-        pinch_threshold_px: float = 30.0,
+        click_threshold: float = 30.0,
+        release_threshold: float = 40.0,
         camera_src: int = 0,
     ) -> None:
         # Smoothing
@@ -56,7 +57,8 @@ class HandTracker:
         self._previous_smoothed: Optional[SmoothedPoint] = None
 
         # Pinch/click state
-        self.pinch_threshold_px = float(pinch_threshold_px)
+        self.click_threshold = float(click_threshold)
+        self.release_threshold = float(release_threshold)
         self.is_clicking = False
 
         # Win32 APIs
@@ -147,10 +149,10 @@ class HandTracker:
         self.user32.SetCursorPos(int(x), int(y))
 
     def _maybe_click(self, distance_px: float) -> None:
-        if distance_px < self.pinch_threshold_px and not self.is_clicking:
+        if distance_px < self.click_threshold and not self.is_clicking:
             self.user32.mouse_event(self._mouse_event_flags["left_down"], 0, 0, 0, 0)
             self.is_clicking = True
-        elif distance_px > self.pinch_threshold_px and self.is_clicking:
+        elif distance_px > self.release_threshold and self.is_clicking:
             self.user32.mouse_event(self._mouse_event_flags["left_up"], 0, 0, 0, 0)
             self.is_clicking = False
 
@@ -187,21 +189,51 @@ class HandTracker:
             raw_tx, raw_ty = self.extract_thumb_tip_px(frame_w, frame_h, hand_landmarks)
             raw_xy = (raw_ix, raw_iy)
 
-            # EMA smoothing (for cursor movement)
-            smoothed = self._ema_smooth(raw_ix, raw_iy)
-            smoothed_xy = (smoothed.x, smoothed.y)
-
-            # Cursor mapping + movement
-            # Horizontal flip so hand left moves cursor left (invert X only).
-            screen_x, screen_y = self._map_smoothed_to_screen_px(
-                (frame_w - smoothed.x), smoothed.y, frame_w, frame_h
+            # --- Anchor Separation (fix 1): use Landmark 5 (Index MCP/Base) for movement ---
+            move_ix, move_iy = self.extract_fingertip_px(
+                frame_w,
+                frame_h,
+                hand_landmarks,
+                5,  # Landmark 5 = Index MCP
             )
 
+            # EMA smoothing for cursor movement using Landmark 5
+            smoothed = self._ema_smooth(move_ix, move_iy)
+            smoothed_xy = (smoothed.x, smoothed.y)
+
+
+            # --- Low Sensitivity Active Area (fix 2): map using margin box ---
+            frame_margin = 75
+
+            # Clip margins to valid frame extents
+            x0 = int(min(max(frame_margin, 0), frame_w - 1))
+            x1 = int(min(max(frame_w - frame_margin, 0), frame_w))
+            y0 = int(min(max(frame_margin, 0), frame_h - 1))
+            y1 = int(min(max(frame_h - frame_margin, 0), frame_h))
+
+            # Draw Active Area rectangle for UX/debug
+            cv2.rectangle(
+                annotated,
+                (x0, y0),
+                (x1, y1),
+                (255, 0, 0),
+                thickness=2,
+            )
+
+            # Map smoothed move anchor (Landmark 5) within [frame_margin, frame_w-frame_margin]
+            # to [0, screen_w] / [0, screen_h] with np.interp
+            # Horizontal flip so hand left moves cursor left (invert X only).
+            mapped_x = np.interp((frame_w - smoothed.x), [x0, x1], [0, self.screen_w])
+            mapped_y = np.interp(smoothed.y, [y0, y1], [0, self.screen_h])
+
+            screen_x, screen_y = int(round(mapped_x)), int(round(mapped_y))
             self._set_cursor_pos(screen_x, screen_y)
 
-            # Pinch detection (raw distance between index and thumb tips)
+
+            # Pinch detection (raw distance between Landmark 8 (Index Tip) and Landmark 4 (Thumb Tip))
             distance_px = float(np.linalg.norm([raw_ix - raw_tx, raw_iy - raw_ty]))
             self._maybe_click(distance_px)
+
 
             # Draw default MediaPipe hand skeleton.
             self.mp_drawing.draw_landmarks(
@@ -273,7 +305,8 @@ def main() -> None:
         min_detection_confidence=0.7,
         min_tracking_confidence=0.7,
         alpha=0.2,
-        pinch_threshold_px=30.0,
+        click_threshold=30.0,
+        release_threshold=40.0,
     )
 
 
