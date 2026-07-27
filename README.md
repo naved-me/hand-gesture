@@ -31,15 +31,31 @@ graph TD
 | `opencv-python` | 5.0.0.93 | Webcam interfacing, image processing, and visual annotations. |
 | `mediapipe` | 0.10.9 | Core machine learning model for extracting 3D hand landmarks. |
 | `numpy` | 2.4.6 | Linear algebra calculations for angles, distances, and interpolation. |
+| `streamlit` | Latest | Web-based dashboard UI to easily launch and manage the controller. |
 
 *(For deeper information on the tracking logic, refer to the [MediaPipe Hand Landmarker documentation](https://developers.google.com/mediapipe/solutions/vision/hand_landmarker).)*
 
 ## Installation & Usage
 
 1. Clone this repository to your local machine.
-2. Install the exact required dependencies listed in the `requirements.txt` file to ensure compatibility.
-3. Execute `main.py` to start the asynchronous webcam feed and gesture tracking.
-4. Press `q` or `Q` at any time to safely exit the application, close windows, and release all simulated inputs.
+2. Install the exact required dependencies listed in the `requirements.txt` file to ensure compatibility:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. You can either run the background controller directly:
+   ```bash
+   python main.py
+   ```
+   Or use the Streamlit Dashboard for an easy-to-use interface:
+   ```bash
+   streamlit run app.py
+   ```
+4. Press `q` or `Q` (or use the Stop button in the Streamlit UI) at any time to safely exit the application, close windows, and release all simulated inputs.
+
+---
+
+## Technical Overview (MTech Learning)
+For a comprehensive breakdown of the project architecture, problem-solving approach, and technical decisions, please read the [learn.md](learn.md) file. This is especially useful for understanding the inner workings and preparing for technical interviews.
 
 ---
 
