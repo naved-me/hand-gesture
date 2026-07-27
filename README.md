@@ -54,11 +54,6 @@ graph TD
 
 ---
 
-## Technical Overview (MTech Learning)
-For a comprehensive breakdown of the project architecture, problem-solving approach, and technical decisions, please read the [learn.md](learn.md) file. This is especially useful for understanding the inner workings and preparing for technical interviews.
-
----
-
 ## System Limitations & Technical Debt
 
 While this prototype accomplishes its primary goals, it contains severe architectural mistakes and bad practices that will cause problems if deployed as-is. You need to fix these issues before scaling:
