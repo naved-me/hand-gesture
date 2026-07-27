@@ -1,6 +1,6 @@
 # Hand Gesture OS Controller
 
-This repository contains a dual-mode Python application that uses webcam input to translate real-time hand tracking into operating system commands. It relies on computer vision to seamlessly switch between a virtual mouse and a driving simulator controller based on the number of hands detected on screen.
+This repository contains a dual-mode Python application that uses webcam input to translate real-time hand tracking into windows operating system commands. It relies on computer vision to seamlessly switch between a virtual mouse and a driving simulator controller based on the number of hands detected on screen.
 
 ## Core Features
 
@@ -53,12 +53,3 @@ graph TD
 4. Press `q` or `Q` (or use the Stop button in the Streamlit UI) at any time to safely exit the application, close windows, and release all simulated inputs.
 
 ---
-
-## System Limitations & Technical Debt
-
-While this prototype accomplishes its primary goals, it contains severe architectural mistakes and bad practices that will cause problems if deployed as-is. You need to fix these issues before scaling:
-
-*   **Strict Operating System Lock-in:** The codebase is permanently hardcoded to Windows environments due to its absolute reliance on `ctypes.windll.user32` for hardware input simulation. Attempting to run this on Linux or macOS will result in immediate fatal crashes.
-*   **Redundant Memory Allocation:** The `main.py` entry point correctly creates a global MediaPipe `Hands` instance to route logic, but the `DrivingController` incorrectly allocates a completely separate, unused instance of the ML model in its constructor. This wastes processing overhead and memory.
-*   **Brittle Hardcoded Variables:** The tracking logic relies heavily on unexposed magic numbers, such as a strict 75-pixel margin for the active screen area. This guarantees the script will break or behave erratically for users with different webcam aspect ratios or crop factors.
-*   **Flawed Input Emulation:** Using a custom PWM loop to spam keyboard inputs (W, A, S, D) for driving is a fundamentally bad approach for gaming. It will introduce severe input stuttering and latency in modern racing titles. True proportional control requires emulating an XInput protocol (acting as a virtual Xbox controller).
